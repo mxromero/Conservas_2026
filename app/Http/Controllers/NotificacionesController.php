@@ -129,6 +129,10 @@ class NotificacionesController extends Controller
             $registro = new ModelsProduccion($datosNotificacion);
             $registro->save();
 
+            $UmaSession = $session['Uma'];
+            imprimirUma($UmaSession);
+            $UmaSession = 0;
+
             NotificacionSession::forget();
 
             return redirect()->back()->with('success', 'Notificación registrada correctamente.');
@@ -140,6 +144,53 @@ class NotificacionesController extends Controller
     }
 
 
+    public function imprimirUma($uma)
+    {
+        $umaPadded = str_pad($uma, 20, '0', STR_PAD_LEFT);
+        $produccion = ModelsProduccion::where('uma', $umaPadded)->first();
+
+        if (!$produccion) {
+            return response()->json(['error' => 'UMA no encontrada'], 404);
+        }
+
+        $lineas = ModelsImpresoras::where('paletizadora', $produccion->paletizadora)
+            ->select('impresora', 'impresorac')
+            ->get();
+
+        if ($lineas->isEmpty()) {
+            return response()->json(['error' => 'No se encontró impresora para esta paletizadora'], 404);
+        }
+
+        // Tomar la primera impresora encontrada
+        $impresoraIp = $lineas[0]->impresorac;          //Impresión vía IP
+        $impresoraCompartida = $lineas[0]->impresora;   //Impresión compartida
+
+        // Generar el ZPL
+        $zpl = ZplHelper::generarDesdePlantilla('uma_template', [
+            'paletizadora' => $produccion->paletizadora,
+            'hora'         => date('H:i', strtotime($produccion->hora)),
+            'cantidad'     => $produccion->cantidad,
+            'fecha'        => $produccion->fecha->format('d-m-Y'),
+            'uma_numero'   => (float)$produccion->uma,
+            'lote'         => $produccion->lote,
+            'material'     => $produccion->material,
+            'descripcion'  => $produccion->descripcion,
+            'uma_barcode'  => substr((float)$produccion->uma, 0, 12) . '>6' . substr((float)$produccion->uma, -1)
+        ]);
+
+        // Intentar imprimir
+        $resultado = PrinterHelper::imprimir($zpl, $impresoraIp, $impresoraCompartida);
+
+        if (!$resultado) {
+            return response()->json(['error' => 'No se pudo enviar la impresión'], 500);
+        }
+
+        return response()->json([
+            'message' => 'Impresión enviada correctamente',
+            'impresora' => $impresoraIp ?: $impresoraCompartida,
+            'zpl' => $zpl // opcional para depuración
+        ]);
+    }
 
 
     /**
