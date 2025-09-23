@@ -30,6 +30,21 @@ class LdapService
         $this->contrasenia = $contrasenia;
     }
 
+    public function setNombreCompleto(string $nombreCompleto): void
+    {
+        $this->nombreCompleto = $nombreCompleto;
+    }
+
+    public function getNombreCompleto(): ?string
+    {
+        return $this->nombreCompleto;
+    }
+
+    public function getGroups(): array
+    {
+        return $this->grupos;
+    }
+
     public function iniciarSesion(): bool
     {
         $ldapHost = env('LDAP_HOST');
@@ -58,8 +73,10 @@ class LdapService
             $resultado = ldap_search($conexion, $baseDn, $filtro);
             $entry = ldap_get_entries($conexion, $resultado);
 
-            $this->nombreCompleto = $entry[0]['displayname'][0] ?? null; //Nombre Completo
+            $this->setNombreCompleto($entry[0]['displayname'][0]); //Nombre Completo
             $this->cargo = $entry[0]['title'][0] ?? null; //Cargo
+
+
 
             $miembroDe = $entry[0]['memberof'] ?? [];
             unset($miembroDe['count']);
@@ -75,12 +92,16 @@ class LdapService
                 return strpos($valor, 'UP_') === 0;
             });
 
+
             if (empty($this->grupos)) {
                 // No pertenece → no permitir login
                 $this->estadoSesion = false;
                 return false;
             }
 
+            $this->ldapData = $this->getGroups();
+
+            session(['fullname' => $this->nombreCompleto]);
             session(['grupos' => $this->grupos]);
 
             return true;

@@ -38,44 +38,49 @@
     </div>
 
     <!-- Producción -->
-    <div class="accordion-item border-0">
-        <h2 class="accordion-header" id="headingProduccion">
-            <button class="accordion-button bg-warning text-dark show" type="button"  aria-expanded="false" aria-controls="collapseProduccion">
-                ⚙️ Producción
-            </button>
-        </h2>
-        <div id="collapseProduccion" class="accordion-collapse collapse show" data-bs-parent="#menuAccordion">
-            <div class="accordion-body p-0">
-                @grupo('UP_Conservas_Admin')
-                    <a href="/impresoras">🖨️ Impresoras</a>
-                @endgrupo
-                @grupo('UP_Conservas_Usuario')
-                    <a href="/configuracion">📥 Cargar Orden Previsional</a>
-                    <a href="/notificaciones">🔔 Notificación Producción</a>
-                @endgrupo
+    @if(auth()->user()->hasGroup('UP_Conservas_Admin') || auth()->user()->hasGroup('UP_Conservas_Usuario'))
+        <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingProduccion">
+                <button class="accordion-button bg-warning text-dark show" type="button"  aria-expanded="false" aria-controls="collapseProduccion">
+                    ⚙️ Producción
+                </button>
+            </h2>
+            <div id="collapseProduccion" class="accordion-collapse collapse show" data-bs-parent="#menuAccordion">
+                <div class="accordion-body p-0">
+                    @if(auth()->user()->hasGroup('UP_Conservas_Admin'))
+                        <a href="/impresoras">🖨️ Impresoras</a>
+                    @endif
+
+                    @if(auth()->user()->hasGroup('UP_Conservas_Admin') || auth()->user()->hasGroup('UP_Conservas_Usuario'))
+                        <a href="/configuracion">📥 Cargar Orden Previsional</a>
+                        <a href="/notificaciones">🔔 Notificación Producción</a>
+                    @endif
+                </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <!-- Reportes -->
-    <div class="accordion-item border-0">
-        <h2 class="accordion-header" id="headingReportes">
-            <button class="accordion-button collapsed bg-info text-white" type="button" data-bs-toggle="collapse"
-                data-bs-target="#collapseReportes" aria-expanded="false" aria-controls="collapseReportes">
-                📊 Reportes
-            </button>
-        </h2>
-        <div id="collapseReportes" class="accordion-collapse collapse show" data-bs-parent="#menuAccordion">
-            <div class="accordion-body p-0">
-                @grupo('UP_Conservas_Usuario')
-                    <a href="/reporteDia">📅 Reporte Diario</a>
-                @endgrupo
+    @if(auth()->user()->hasGroup('UP_Conservas_Admin') || auth()->user()->hasGroup('UP_Conservas_Usuario'))
+        <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingReportes">
+                <button class="accordion-button collapsed bg-info text-white" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseReportes" aria-expanded="false" aria-controls="collapseReportes">
+                    📊 Reportes
+                </button>
+            </h2>
+            <div id="collapseReportes" class="accordion-collapse collapse show" data-bs-parent="#menuAccordion">
+                <div class="accordion-body p-0">
+
+                        <a href="/reporteDia">📅 Reporte Diario</a>
+
+                </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <!-- Configuración -->
-    @grupo('UP_Conservas_Admin')
+    @if(auth()->user()->hasGroup('UP_Conservas_Admin'))
     <div class="accordion-item border-0">
         <h2 class="accordion-header" id="headingConfig">
             <button class="accordion-button collapsed bg-secondary text-white" type="button" data-bs-toggle="collapse"
@@ -89,7 +94,7 @@
             </div>
         </div>
     </div>
-    @endgrupo
+    @endif
 
     <!-- Logout -->
     <div class="accordion-item border-0">

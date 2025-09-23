@@ -8,12 +8,9 @@ use App\Services\LdapService;
 
 class LdapUserProvider implements UserProvider
 {
-    public function retrieveById($identifier)
-    {
-        $dominio = "@" . env('DOMINIO_VIGENTE');
-        // No tenemos base de datos, retornamos un user fakemu
-        return new LdapUser($identifier, $identifier, $identifier . $dominio);
-    }
+
+    public $grupos = [];
+    public $nombreCompleto;
 
     public function retrieveByToken($identifier, $token)
     {
@@ -27,19 +24,21 @@ class LdapUserProvider implements UserProvider
 
     public function retrieveByCredentials(array $credentials)
     {
+        dd(session()->all());
 
         $ldap = new LdapService();
         $ldap->setCorreo($credentials['correo']);
         $ldap->setContrasenia($credentials['password']);
         $ldap->IniciarSesion();
-        $grupos = session('grupos');
+        $this->grupos = session('grupos');
+        $this->nombreCompleto = session('fullname');
 
         if ($ldap->estadoSesion) {
             return new LdapUser(
                 $ldap->usuario,
-                $ldap->nombreCompleto,
+                $this->nombreCompleto,
                 $credentials['correo'],
-                $grupos
+                $this->grupos
             );
         }
 
@@ -50,5 +49,16 @@ class LdapUserProvider implements UserProvider
     {
         // Si retrieveByCredentials devolvió un user válido, entonces pasó LDAP
         return $user instanceof LdapUser;
+    }
+
+    public function retrieveById($identifier)
+    {
+
+        $allSession = session()->all();
+
+       // dd($allSession);
+        $dominio = "@" . env('DOMINIO_VIGENTE');
+        // No tenemos base de datos, retornamos un user fakemu
+        return new LdapUser($identifier, $identifier, $identifier . $dominio, $allSession['grupos'] ?? []);
     }
 }

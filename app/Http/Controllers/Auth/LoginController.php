@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Auth\LdapUser;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -62,15 +63,15 @@ class LoginController extends Controller
         $ldap->setCorreo($request->email);
         $ldap->setContrasenia($request->password);
 
+
         if ($ldap->iniciarSesion()) {
 
-            $user = new GenericUser([
-                'id' => $ldap->usuario,
-                'name' => $ldap->nombreCompleto,
-                'email' => $request->email,
-                'groups' => $ldap->grupos,
-                'ldapData' => $ldap->ldapData
-            ]);
+            $user = new \App\Auth\LdapUser(
+                $ldap->usuario,
+                $ldap->nombreCompleto,
+                $request->email,
+                $ldap->grupos
+            );
 
             Auth::login($user);
 
@@ -89,10 +90,10 @@ class LoginController extends Controller
         //cerrar sesión
         Auth::logout();
         //redirige hacia el login
-        return redirect('/login')->withHeaders([
-        'Cache-Control' => 'no-cache, no-store, must-revalidate',
-        'Pragma' => 'no-cache',
-        'Expires' => '0',
-    ]);
+            return redirect('/login')->withHeaders([
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 }

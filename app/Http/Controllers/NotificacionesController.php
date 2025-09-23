@@ -2,6 +2,9 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\NotificacionSession;
+use App\Helpers\PrinterHelper;
+use App\Helpers\ZplHelper;
+use App\Models\ModelsImpresoras;
 use App\Models\ModelsPaletizadoras;
 use App\Models\ModelsProduccion;
 use Carbon\Carbon;
@@ -28,14 +31,14 @@ class NotificacionesController extends Controller
             return response()->json(['activa' => false]);
         }
 
-        $prod = ModelsProduccion::where('paletizadora', '=', $linea->paletizadora)
-            ->where('material', '=', $linea->material_orden)
-            ->orderBy('uma', 'desc')
-            ->first();
+        $maxUma  = ModelsProduccion::where('material', trim($linea->material_orden))
+            ->where('NOrdPrev', $linea->NOrdPrev)
+            ->where('paletizadora', $linea->paletizadora)
+            ->max('uma');
 
         $uma = '';
 
-        if (! $prod) {
+        if (! $maxUma ) {
             $planta       = env('PLANTA');
             $largo        = str_pad('', 5, '0');
             $codigo       = preg_replace('/\D/', '', trim($linea->material_orden));
@@ -43,31 +46,31 @@ class NotificacionesController extends Controller
             $uma_base     = $planta . $codigo . $paletizadora . $largo;
             $uma          = str_pad($uma_base, 20, '0', STR_PAD_LEFT);
         } else {
-            $uma = str_pad((string) ((int) $prod->uma + 1), 20, '0', STR_PAD_LEFT);
+            $uma = str_pad((string) ((int) $maxUma  + 1), 20, '0', STR_PAD_LEFT);
         }
-        $nom = substr($linea->material_orden, 0, 3);
-        $fechaString = $linea->fecha;
-        $fechaCarbon = Carbon::parse($fechaString);
-        $lote = $nom . $fechaCarbon->format('mY');
+            $nom = substr($linea->material_orden, 0, 3);
+            $fechaString = $linea->fecha;
+            $fechaCarbon = Carbon::parse($fechaString);
+            $lote = $nom . $fechaCarbon->format('mY');
 
-        $datos = [
-            'Linea'     => $linea->paletizadora,
-            'Orden Previsional'  => $linea->NOrdPrev,
-            'Versión Fabricación'  => $linea->VersionF,
-            'Material'  => trim($linea->material_orden),
-            'Fecha-Semi' => Carbon::parse($linea->fecha)->format('d-m-Y'),
-            'Almacen'   => $linea->almacen,
-            'Uma'       => $uma,
-            'Lote'    => $lote,
-            'Hora' => Carbon::now()->format('H:i:s'),
-            'Fecha' => Carbon::now()->format('d-m-Y'),
-        ];
+            $datos = [
+                'Linea'     => $linea->paletizadora,
+                'Orden Previsional'  => $linea->NOrdPrev,
+                'Versión Fabricación'  => $linea->VersionF,
+                'Material'  => trim($linea->material_orden),
+                'Fecha-Semi' => Carbon::parse($linea->fecha)->format('d-m-Y'),
+                'Almacen'   => $linea->almacen,
+                'Uma'       => $uma,
+                'Lote'    => $lote,
+                'Hora' => Carbon::now()->format('H:i:s'),
+                'Fecha' => Carbon::now()->format('d-m-Y'),
+            ];
 
-        NotificacionSession::set($datos);
+            NotificacionSession::set($datos);
 
-        if ($linea) {
-            return response()->json(['activa' => true]);
-        }
+            if ($linea) {
+                return response()->json(['activa' => true]);
+            }
     }
 
     public function view()
@@ -130,7 +133,7 @@ class NotificacionesController extends Controller
             $registro->save();
 
             $UmaSession = $session['Uma'];
-            imprimirUma($UmaSession);
+            $this->imprimirUma($UmaSession);
             $UmaSession = 0;
 
             NotificacionSession::forget();

@@ -7,7 +7,7 @@ class PrinterHelper
     /**
      * Intenta imprimir por IP, si falla, intenta por impresora compartida.
      */
-    public static function imprimir(string $zpl, string $ip = null, string $impresoraCompartida = null, int $puerto = 9100)
+    public static function imprimir(string $zpl, string $ip, string $impresoraCompartida, int $puerto = 9100)
     {
         $impresionPorIp = false;
 

@@ -15,6 +15,12 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
+//Cierre de sesión personalizado para limpiar la sesión de LDAP
+Route::post('/logout', function () {
+    session()->flush(); // borra todos los datos de sesión
+    return redirect('/login');
+})->name('logout');
+
 // 🔹 Login personalizado con LDAP
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);

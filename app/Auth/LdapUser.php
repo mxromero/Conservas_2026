@@ -11,7 +11,7 @@ class LdapUser implements Authenticatable
     public $email;
     public $groups = [];
 
-    public function __construct($username, $name, $email, $groups = [])
+    public function __construct($username, $name, $email, $groups)
     {
         $this->username = $username;
         $this->name = $name;
@@ -48,5 +48,10 @@ class LdapUser implements Authenticatable
     public function getRememberTokenName()
     {
         return null;
+    }
+
+    public function hasGroup($group)
+    {
+        return in_array($group, $this->groups);
     }
 }
