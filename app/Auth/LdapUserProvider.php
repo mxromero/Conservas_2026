@@ -24,7 +24,7 @@ class LdapUserProvider implements UserProvider
 
     public function retrieveByCredentials(array $credentials)
     {
-        dd(session()->all());
+        session_start();
 
         $ldap = new LdapService();
         $ldap->setCorreo($credentials['correo']);

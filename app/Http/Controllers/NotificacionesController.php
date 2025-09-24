@@ -81,15 +81,6 @@ class NotificacionesController extends Controller
     }
 
 
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -121,7 +112,7 @@ class NotificacionesController extends Controller
        //         'cantidad2'       => (int)$request->input('cantidad'),
                 'temp'            => (int)substr(ltrim($session['Uma'], '0'), 0, 1),
                 'paletizadora'    => (int)$session['Linea'],
-                'fechaCodificado' => Carbon::parse($request->input('fecha_codificado'))->format('Y-m-d'),
+       //         'fechaCodificado' => Carbon::parse($request->input('fecha_codificado'))->format('Y-m-d'),
                 'n_doc'           => str_pad('', 10, ' '),
                 'li_mb'           => str_pad('', 12, ' '),
                 'li_fq'           => str_pad('', 12, ' '),
