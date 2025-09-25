@@ -2,27 +2,22 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row">
         <!-- Menú lateral -->
         <div class="col-md-2">
             @yield('sidebar')
         </div>
-
         <!-- Contenido principal -->
         <div class="col-md-10">
             <div class="card">
                 <div class="card-header">{{ __('Indicador de Líneas Cargadas') }}</div>
                 <div class="card-body">
-
                     <!-- Sección que se actualizará -->
                     <div class="container" id="lineas-container">
                         @include('partials.lineas_cards', ['lineas' => $lineas])
                     </div>
-
                 </div>
             </div>
         </div>
-    </div>
 </div>
 @endsection
 
