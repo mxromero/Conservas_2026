@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ModelsCantidadMaterial;
 use Illuminate\Http\Request;
 
 class ControllerCantidadMaterial extends Controller
@@ -11,7 +12,8 @@ class ControllerCantidadMaterial extends Controller
      */
     public function index()
     {
-        //
+        $Todo_materiales = ModelsCantidadMaterial::orderBy('Material')->get();
+        return view('configuracion.cantidad-material', compact('Todo_materiales'));
     }
 
     /**
@@ -19,7 +21,7 @@ class ControllerCantidadMaterial extends Controller
      */
     public function create()
     {
-        //
+        return view('configuracion.cantidad-material-create');
     }
 
     /**
@@ -27,7 +29,22 @@ class ControllerCantidadMaterial extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'Material' => 'required|string|max:10',
+            'linea' => 'required|string|max:10',
+            'cant_pro' => 'required|integer|min:1',
+        ]);
+
+        ModelsCantidadMaterial::create([
+            'Material' => $request->Material,
+            'linea' => $request->linea,
+            'cant_pro' => $request->cant_pro,
+            'corr_actual' => 0, // puedes ajustarlo
+            'nvo_lote' => 'N',  // valor por defecto
+        ]);
+
+        return redirect()->route('configuracion.cantidad-material')
+                        ->with('success', 'Material agregado correctamente.');
     }
 
     /**
@@ -57,8 +74,14 @@ class ControllerCantidadMaterial extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $idMaterial, string $idPaletizadora)
     {
-        //
+            $material = ModelsCantidadMaterial::where('Material', '=', $idMaterial)
+                                              ->where('linea', '=', $idPaletizadora)
+                                              ->firstOrFail();
+            $material->delete();
+
+            return redirect()->route('configuracion.cantidad-material')
+                ->with('success', 'Material eliminado correctamente.');
     }
 }

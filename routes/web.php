@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ControllerCantidadMaterial;
 use App\Http\Controllers\ControllerImpresoras;
 use Illuminate\Support\Facades\Route;
 
@@ -95,6 +96,12 @@ Route::middleware(['auth', 'ldap.group:UP_Conservas_Usuario'])->group(function (
     // Impresoras
     Route::resource('impresoras', ControllerImpresoras::class);
     Route::post('/impresoras/aplicar-impresora', [ControllerImpresoras::class, 'aplicarImpresora'])->name('impresoras.aplicarImpresora');
+
+    // Cantidad Material
+    Route::get('/cantidad', [ControllerCantidadMaterial::class, 'index'])->name('configuracion.cantidad-material');
+    Route::delete('/configuracion/cantidad-material/{Material}/{Paletizadora}', [ControllerCantidadMaterial::class, 'destroy'])->name('cantidadmaterial.destroy');
+    Route::get('/configuracion/cantidad-material/create', [ControllerCantidadMaterial::class, 'create'])->name('cantidadmaterial.create');
+    Route::post('/configuracion/cantidad-material', [ControllerCantidadMaterial::class, 'store'])->name('cantidadmaterial.store');
 });
 
 /* ============================================================

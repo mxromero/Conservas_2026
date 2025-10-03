@@ -49,6 +49,7 @@
                 <div class="accordion-body p-0">
                     @if(auth()->user()->hasGroup('UP_Conservas_Admin'))
                         <a href="/impresoras">🖨️ Impresoras</a>
+                        <a href="/cantidad">➕ Cantidad Material</a>
                     @endif
 
                     @if(auth()->user()->hasGroup('UP_Conservas_Admin') || auth()->user()->hasGroup('UP_Conservas_Usuario'))
