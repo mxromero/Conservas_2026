@@ -40,12 +40,13 @@ class HomeController extends Controller
 
         // 2️⃣ Contar cuántos registros hay para cada línea
         foreach ($lineas as $linea) {
-            $material = trim($linea->material);
+            $material = trim($linea->material_orden);
 
-            $maxUma = ModelsProduccion::where('NordPrev', '0000091298')
-                    ->where('paletizadora', '6')
-                    ->where('material', 'SCO10454')
+            $maxUma = ModelsProduccion::where('NordPrev', $linea->NOrdPrev)
+                    ->where('paletizadora', $linea->paletizadora)
+                    ->where('material', $material)
                     ->max('uma');
+
             $linea->ult_uma = $maxUma;
         }
 
@@ -83,10 +84,13 @@ class HomeController extends Controller
             ->get(['paletizadora', 'material', 'NordPrev']);
 
         foreach ($lineas as $linea) {
-            $maxUma = ModelsProduccion::where('NordPrev', '0000091298')
-                    ->where('paletizadora', '6')
-                    ->where('material', 'SCO10454')
+            $material = trim($linea->material_orden);
+
+            $maxUma = ModelsProduccion::where('NordPrev', $linea->NOrdPrev)
+                    ->where('paletizadora', $linea->paletizadora)
+                    ->where('material', $material)
                     ->max('uma');
+
             $linea->ult_uma = $maxUma;
         }
 

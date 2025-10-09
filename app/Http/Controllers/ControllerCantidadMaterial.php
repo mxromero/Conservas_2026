@@ -39,8 +39,8 @@ class ControllerCantidadMaterial extends Controller
             'Material' => $request->Material,
             'linea' => $request->linea,
             'cant_pro' => $request->cant_pro,
-            'corr_actual' => 0, // puedes ajustarlo
-            'nvo_lote' => 'N',  // valor por defecto
+            'corr_actual' => 1,
+            'nvo_lote' => '1',
         ]);
 
         return redirect()->route('configuracion.cantidad-material')
