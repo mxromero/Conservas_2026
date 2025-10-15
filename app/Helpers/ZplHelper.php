@@ -9,6 +9,7 @@ class ZplHelper
         $carpeta = env('FOLDER_LABEL');
         $ruta = resource_path($carpeta . "/{$plantilla}.zpl");
 
+        
         if (!file_exists($ruta)) {
             throw new \Exception("Plantilla ZPL no encontrada: {$plantilla}");
         }

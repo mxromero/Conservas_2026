@@ -32,7 +32,7 @@
         </h2>
         <div class="accordion-collapse collapse show">
             <div class="accordion-body p-0">
-                <a href="/home">🏠 Inicio</a>
+                <a href="{{ route('home') }}">🏠 Inicio</a>
             </div>
         </div>
     </div>
@@ -48,13 +48,13 @@
             <div id="collapseProduccion" class="accordion-collapse collapse show" data-bs-parent="#menuAccordion">
                 <div class="accordion-body p-0">
                     @if(auth()->user()->hasGroup('UP_Conservas_Admin'))
-                        <a href="/impresoras">🖨️ Impresoras</a>
-                        <a href="/cantidad">➕ Cantidad Material</a>
+                        <a href="{{ route('impresoras.index') }}">🖨️ Impresoras</a>
+                        <a href="{{ route('configuracion.cantidad-material') }}">➕ Cantidad Material</a>
                     @endif
 
                     @if(auth()->user()->hasGroup('UP_Conservas_Admin') || auth()->user()->hasGroup('UP_Conservas_Usuario'))
-                        <a href="/configuracion">📥 Cargar Orden Previsional</a>
-                        <a href="/notificaciones">🔔 Notificación Producción</a>
+                        <a href="{{ route('configuracion.index') }}">📥 Cargar Orden Previsional</a>
+                        <a href="{{ route('notificaciones.index') }}">🔔 Notificación Producción</a>
                     @endif
                 </div>
             </div>
@@ -62,7 +62,7 @@
     @endif
 
     <!-- Reportes -->
-    @if(auth()->user()->hasGroup('UP_Conservas_Admin') || auth()->user()->hasGroup('UP_Conservas_Usuario'))
+    @if(auth()->user()->hasGroup('UP_Conservas_Admin'))
         <div class="accordion-item border-0">
             <h2 class="accordion-header" id="headingReportes">
                 <button class="accordion-button collapsed bg-info text-white" type="button" data-bs-toggle="collapse"
@@ -73,7 +73,7 @@
             <div id="collapseReportes" class="accordion-collapse collapse show" data-bs-parent="#menuAccordion">
                 <div class="accordion-body p-0">
 
-                        <a href="/reporteDia">📅 Reporte Diario</a>
+                    <a href="{{ route('reporteDia.index') }}">📅 Reporte Diario</a>
 
                 </div>
             </div>
@@ -91,7 +91,10 @@
         </h2>
         <div id="collapseConfig" class="accordion-collapse collapse show" data-bs-parent="#menuAccordion">
             <div class="accordion-body p-0">
-                <a href="/configuracion/lineas">➕ Agregar Nuevas Líneas</a>
+                <a href="{{ route('configuracion.lineas') }}">➕ Agregar Nuevas Líneas</a>
+            </div>
+            <div class="accordion-body p-0">
+                <a href="{{ route('logs.index') }}">📝 Revisar Logs</a>
             </div>
         </div>
     </div>

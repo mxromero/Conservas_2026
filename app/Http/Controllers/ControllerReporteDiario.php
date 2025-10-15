@@ -10,6 +10,7 @@ use App\Models\ModelsPaletizadoras;
 use App\Models\ModelsProduccion;
 use App\Helpers\ZplHelper;
 use App\Helpers\PrinterHelper;
+use App\Models\LogRegistro;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Response;
@@ -44,11 +45,12 @@ class ControllerReporteDiario extends Controller
         return view('Reportes.index', compact('paletizadoras', 'ordenes','materiales'));
     }
 
+
     public function filtrar(Request $request)
     {
         $query = ModelsProduccion::query();
 
-
+        // Filtros personalizados
         if ($request->filled('fecha_desde')) {
             $query->where('fecha', '>=', $request->fecha_desde);
         }
@@ -69,10 +71,41 @@ class ControllerReporteDiario extends Controller
             $query->where('produccion.material', $request->material);
         }
 
-        $resultados = $query->orderBy('fecha', 'desc')->paginate(env('PAGINATION_COUNT'));
+        // 🔍 Búsqueda global de DataTables
+        $searchValue = $request->input('search.value');
+        if (!empty($searchValue)) {
+            $query->where(function ($q) use ($searchValue) {
+                $q->where('uma', 'like', "%{$searchValue}%")
+                ->orWhere('NOrdPrev', 'like', "%{$searchValue}%")
+                ->orWhere('material', 'like', "%{$searchValue}%")
+                ->orWhere('lote', 'like', "%{$searchValue}%")
+                ->orWhere('paletizadora', 'like', "%{$searchValue}%");
+            });
+        }
 
-        return response()->json($resultados);
-    }
+        // 📊 Total de registros antes de filtrar
+        $recordsTotal = ModelsProduccion::count();
+        $recordsFiltered = $query->count();
+
+        // 🔢 Paginación de DataTables
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+
+        $data = $query
+            ->orderBy('fecha', 'desc')
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        // 🔁 Respuesta formato DataTables
+        return response()->json([
+            'draw' => intval($request->input('draw')),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data,
+        ]);
+}
+
 
     public function exportar(Request $request)
     {
@@ -150,6 +183,7 @@ class ControllerReporteDiario extends Controller
 
     public function imprimirUma($uma)
     {
+
         $umaPadded = str_pad($uma, 20, '0', STR_PAD_LEFT);
         $produccion = ModelsProduccion::where('uma', $umaPadded)->first();
 
@@ -166,16 +200,17 @@ class ControllerReporteDiario extends Controller
         }
 
         // Tomar la primera impresora encontrada
-        $impresoraIp = $lineas[0]->impresorac;
-        $impresoraCompartida = $lineas[0]->impresora;
+        $impresoraIp = trim($lineas[0]->impresorac);
+        $impresoraCompartida = trim($lineas[0]->impresora);
 
         // Generar el ZPL
+        try{
         $zpl = ZplHelper::generarDesdePlantilla('uma_template', [
             'paletizadora' => $produccion->paletizadora,
             'hora'         => date('H:i', strtotime($produccion->hora)),
-            'fecha_etiq'   => $produccion->fecha_etiq->format('d-m-Y'),
+            'fecha_etiq'   => $produccion->fecha_etiq ? $produccion->fecha_etiq->format('d-m-Y') : '',
             'cantidad'     => $produccion->cantidad,
-            'fecha'        => $produccion->fecha->format('d-m-Y'),
+            'fecha'        => $produccion->fecha ? $produccion->fecha->format('d-m-Y') : '',
             'uma_numero'   => (float)$produccion->uma,
             'lote'         => $produccion->lote,
             'material'     => $produccion->material,
@@ -183,17 +218,34 @@ class ControllerReporteDiario extends Controller
             'uma_barcode'  => substr((float)$produccion->uma, 0, 12) . '>6' . substr((float)$produccion->uma, -1)
         ]);
 
+        }catch(\Exception $e){
+            dd($e->getMessage());
+        }
+
         // Intentar imprimir
-        $resultado = PrinterHelper::imprimir($zpl, $impresoraIp, $impresoraCompartida);
+           $resultado = PrinterHelper::imprimir($zpl, $impresoraIp, $impresoraCompartida);
 
         if (!$resultado) {
             return response()->json(['error' => 'No se pudo enviar la impresión'], 500);
         }
 
+        $user = auth()->user()->name;
+
+        //Registra la impresión en tabla de logs 
+        \DB::table('log_registros')->insert([
+            'usuario' => $user,
+            'accion' => 'Re-impresión',
+            'modelo' => 'Produccion',
+            'datos_anteriores' => json_encode($produccion),
+            'datos_nuevos' => null,
+            'registro_id' => $produccion->uma,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         return response()->json([
+            'success' => true,
             'message' => 'Impresión enviada correctamente',
-            'impresora' => $impresoraIp ?: $impresoraCompartida,
-            'zpl' => $zpl // opcional para depuración
         ]);
     }
 

@@ -28,28 +28,11 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index()
+
+
+    public function home()
     {
-        $lineas = ModelsPaletizadoras::where('paletizadora', '!=', '0')
-                                                ->orderBy('paletizadora', 'asc')
-                                                ->get();
-
-        // 1️⃣ Obtener todos los registros relevantes de producción de una sola vez
-        $producciones = ModelsProduccion::whereIn('paletizadora', $lineas->pluck('paletizadora'))
-            ->get(['paletizadora', 'material', 'NordPrev']);
-
-        // 2️⃣ Contar cuántos registros hay para cada línea
-        foreach ($lineas as $linea) {
-            $material = trim($linea->material_orden);
-
-            $maxUma = ModelsProduccion::where('NordPrev', $linea->NOrdPrev)
-                    ->where('paletizadora', $linea->paletizadora)
-                    ->where('material', $material)
-                    ->max('uma');
-
-            $linea->ult_uma = $maxUma;
-        }
-
+        $lineas = $this->datos_lineas();
         return view('home', compact('lineas'));
     }
 
@@ -73,8 +56,7 @@ class HomeController extends Controller
         return response()->json($linea);
     }
 
-    public function actualizarLineas()
-    {
+    private function datos_lineas(){
         $lineas = ModelsPaletizadoras::where('paletizadora', '!=', '0')
             ->orderBy('paletizadora', 'asc')
             ->get();
@@ -93,7 +75,13 @@ class HomeController extends Controller
 
             $linea->ult_uma = $maxUma;
         }
+        return $lineas;
+    }
 
+    public function actualizarLineas()
+    {
+
+        $lineas = $this->datos_lineas();
         return view('partials.lineas_cards', compact('lineas'));
     }
 

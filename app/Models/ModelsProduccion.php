@@ -58,6 +58,39 @@ class ModelsProduccion extends Model
         'Exp_sap'         => 'string',
     ];
 
+    protected static function booted()
+    {
+        static::updated(function ($model) {
+            \App\Models\LogRegistro::create([
+                'usuario' => auth()->user()->name ?? 'sistema',
+                'accion' => 'actualización',
+                'modelo' => 'Produccion',
+                'registro_id' => $model->uma,
+                'datos_anteriores' => json_encode($model->getOriginal()),
+                'datos_nuevos' => json_encode($model->getChanges()),
+            ]);
+        });
+        // 🔹 Registro de creación
+        /*static::created(function ($model) {
+            \App\Models\LogRegistro::create([
+                'usuario' => auth()->user()->name ?? 'sistema',
+                'accion' => 'creación',
+                'modelo' => 'Produccion',
+                'registro_id' => $model->id,
+                'datos_nuevos' => json_encode($model->toArray()),
+            ]);
+        });*/
 
+        // 🔹 Registro de eliminación
+        static::deleted(function ($model) {
+            \App\Models\LogRegistro::create([
+                'usuario' => auth()->user()->name ?? 'sistema',
+                'accion' => 'eliminación',
+                'modelo' => 'Produccion',
+                'registro_id' => $model->uma,
+                'datos_anteriores' => json_encode($model->getOriginal()),
+            ]);
+        });        
+    }
 
 }

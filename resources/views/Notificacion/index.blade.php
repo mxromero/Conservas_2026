@@ -3,8 +3,6 @@
 @section('content')
     <div class="container-fluid py-4">
         <div class="row">
-
-
             <div class="col-md-5 offset-md-1">
                 <div class="card shadow-sm rounded-3">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap">
@@ -119,8 +117,9 @@
 
                 $btnCargar.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Validando...');
 
+                let urlValidacion = "{{ url('notificaciones/validar-linea') }}/" ;
                 $.ajax({
-                    url: '/notificaciones/validar-linea/' + idLinea,
+                    url: urlValidacion + idLinea,
                     method: 'GET',
                     success: function(response) {
                         if (!response.activa) {
@@ -166,6 +165,26 @@
             @else
                 $inputLinea.focus();
             @endif
+
+            // ✅ Confirmación antes de enviar la notificación
+            $('#formGuardar').on('submit', function(e) {
+                e.preventDefault(); // Evita el envío inmediato
+
+                Swal.fire({
+                    title: '¿Está seguro?',
+                    text: '¿Desea realizar la notificación?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, notificar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit(); // Enviar solo si confirma
+                    }
+                });
+            });
         });
     </script>
 @endpush

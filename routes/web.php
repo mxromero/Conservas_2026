@@ -11,10 +11,14 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'home'])->name('home');
 // 🔹 Pantalla inicial
-Route::get('/', function () {
+ Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('home');
+    }
     return view('auth.login');
-});
+}); 
 
 //Cierre de sesión personalizado para limpiar la sesión de LDAP
 Route::post('/logout', function () {
@@ -31,7 +35,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 | BLOQUE 1: PERFIL (cualquier usuario autenticado)
 ============================================================ */
 Route::middleware(['auth'])->group(function () {
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    /* Route::get('/home', [App\Http\Controllers\HomeController::class, 'home'])->name('home'); */
     Route::get('/perfil',[App\Http\Controllers\HomeController::class, 'showRegistrationForm'])->name('perfil');
     Route::put('/profile',[App\Http\Controllers\HomeController::class, 'update'])->name('perfil.update');
     Route::put('/perfil/password',[App\Http\Controllers\HomeController::class, 'updatePassword'])->name('perfil.password');
@@ -138,7 +142,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/produccion/filtro', [App\Http\Controllers\ControllerReporteDiario::class, 'filtrar'])->name('produccion.filtrar');
     Route::get('/produccion/exportar', [App\Http\Controllers\ControllerReporteDiario::class, 'exportar'])->name('produccion.exportar');
     Route::get('/produccion/uma/{uma}', [App\Http\Controllers\ControllerReporteDiario::class, 'detalleUma'])->name('produccion.detalle');
-    Route::get('/produccion/uma/{uma}/imprimir', [App\Http\Controllers\ControllerReporteDiario::class, 'imprimirUma'])->name('produccion.imprimir');
+    Route::get('/produccion/imprimir/{uma}', [App\Http\Controllers\ControllerReporteDiario::class, 'imprimirUma'])->name('produccion.imprimir');
     Route::delete('/produccion/uma/{uma}/eliminar', [App\Http\Controllers\ControllerReporteDiario::class, 'eliminarUma'])->name('produccion.eliminar');
     Route::post('/produccion/uma/{uma}/update', [App\Http\Controllers\ControllerReporteDiario::class, 'DetalleUmaUpdate'])->name('reportes.update');
     Route::get('/reporteDia/detalleSCO/{uma}/SCO', [App\Http\Controllers\ControllerReporteDiario::class, 'detalleSCO'])->name('reporteDia.detalleSCO');
@@ -147,3 +151,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vaciado/produccion', [App\Http\Controllers\ControllerReporteVaciProd::class, 'index'])->name('reportes.vaciado_produccion');
     Route::get('/vaciado/produccion/filtro', [App\Http\Controllers\ControllerReporteVaciProd::class, 'filtrar'])->name('reportes.vaciado_produccion.filtrar');
 });
+
+// === LOG REGISTROS ===
+Route::middleware(['auth'])->group(function (){
+    Route::get('/logs', [App\Http\Controllers\LogRegistroController::class, 'index'])->name('logs.index');
+    Route::post('/logs/listar', [App\Http\Controllers\LogRegistroController::class, 'listar'])->name('logs.listar');
+});
+
